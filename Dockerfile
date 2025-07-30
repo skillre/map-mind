@@ -4,7 +4,7 @@ FROM nginx:alpine
 WORKDIR /app
 
 # 复制构建后的前端文件
-COPY dist/ /app/
+COPY dist/ /app
 
 # 复制nginx配置文件
 COPY nginx.conf /etc/nginx/nginx.conf
