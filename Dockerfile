@@ -9,13 +9,8 @@ COPY dist/ /app/
 # 复制nginx配置文件
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# 创建nginx用户和组，设置权限
-RUN addgroup -g 1001 -S nginx && \
-    adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx && \
-    chown -R nginx:nginx /app && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d
+# 设置文件权限
+RUN chown -R nginx:nginx /app
 
 # 暴露端口
 EXPOSE 80
