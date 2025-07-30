@@ -9,7 +9,7 @@ const SIMPLE_MIND_MAP_CONFIG = 'SIMPLE_MIND_MAP_CONFIG'
 const SIMPLE_MIND_MAP_LANG = 'SIMPLE_MIND_MAP_LANG'
 const SIMPLE_MIND_MAP_LOCAL_CONFIG = 'SIMPLE_MIND_MAP_LOCAL_CONFIG'
 
-12| let mindMapData = null
+let mindMapData = null
 
 // 获取缓存的思维导图数据
 export const getData = async () => {

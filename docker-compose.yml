@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: mindmap-github
     ports:
-      - "8080:80"
+      - "4880:80"
     restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
