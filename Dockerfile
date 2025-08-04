@@ -4,6 +4,7 @@ FROM nginx:alpine
 WORKDIR /app
 
 # 复制构建后的前端文件
+COPY web/public/index.html /app/index.html
 COPY dist/ /app
 
 # 复制nginx配置文件
