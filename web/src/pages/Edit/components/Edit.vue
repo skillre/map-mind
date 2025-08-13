@@ -327,16 +327,9 @@ export default {
       })
     },
 
-    // 保存到GitHub
-    async saveToGitHub() {
-      try {
-        const data = this.mindMap.getData(true)
-        await storeData(data)
-        this.$message.success('已保存到GitHub')
-      } catch (error) {
-        console.error('保存失败:', error)
-        this.$message.error('保存失败')
-      }
+    // 手动保存
+    manualSave() {
+      storeData(this.mindMap.getData(true))
     },
 
     // 初始化
@@ -455,7 +448,7 @@ export default {
       })
       this.loadPlugins()
       this.mindMap.keyCommand.addShortcut('Control+s', () => {
-        this.saveToGitHub()
+        this.manualSave()
       })
       // 转发事件
       ;[

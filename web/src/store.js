@@ -6,6 +6,7 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
+    isHandleLocalFile: false, // 是否操作的是本地文件
     localConfig: {
       // 本地配置
       isZenMode: false, // 是否是禅模式
@@ -39,6 +40,11 @@ const store = new Vuex.Store({
     bgList: []
   },
   mutations: {
+    // 设置操作本地文件标志位
+    setIsHandleLocalFile(state, data) {
+      state.isHandleLocalFile = data
+    },
+
     // 设置本地配置
     setLocalConfig(state, data) {
       const aiConfigKeys = Object.keys(state.aiConfig)

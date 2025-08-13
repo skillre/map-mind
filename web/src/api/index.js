@@ -2,7 +2,6 @@ import exampleData from 'simple-mind-map/example/exampleData'
 import { simpleDeepClone } from 'simple-mind-map/src/utils/index'
 import Vue from 'vue'
 import vuexStore from '@/store'
-import { getFile, saveFile, initGitHubStorage } from './github'
 
 const SIMPLE_MIND_MAP_DATA = 'SIMPLE_MIND_MAP_DATA'
 const SIMPLE_MIND_MAP_CONFIG = 'SIMPLE_MIND_MAP_CONFIG'
@@ -12,7 +11,7 @@ const SIMPLE_MIND_MAP_LOCAL_CONFIG = 'SIMPLE_MIND_MAP_LOCAL_CONFIG'
 let mindMapData = null
 
 // 获取缓存的思维导图数据
-export const getData = async () => {
+export const getData = () => {
   // 接管模式
   if (window.takeOverApp) {
     mindMapData = window.takeOverAppMethods.getMindMapData()
@@ -22,34 +21,26 @@ export const getData = async () => {
   if (vuexStore.state.isHandleLocalFile) {
     return Vue.prototype.getCurrentData()
   }
-  
-  // 使用GitHub存储
-  try {
-    const file = await getFile('data.smm')
-    if (file) {
-      return JSON.parse(file.content)
-    } else {
+  let store = localStorage.getItem(SIMPLE_MIND_MAP_DATA)
+  if (store === null) {
+    return simpleDeepClone(exampleData)
+  } else {
+    try {
+      return JSON.parse(store)
+    } catch (error) {
       return simpleDeepClone(exampleData)
     }
-  } catch (error) {
-    console.error('获取数据失败:', error)
-    return simpleDeepClone(exampleData)
   }
 }
 
-// 初始化GitHub存储
-export const initGitHub = (owner, repo, token, branch = 'main') => {
-  initGitHubStorage(owner, repo, token, branch)
-}
-
 // 存储思维导图数据
-export const storeData = async (data) => {
+export const storeData = data => {
   try {
     let originData = null
     if (window.takeOverApp) {
       originData = mindMapData
     } else {
-      originData = await getData()
+      originData = getData()
     }
     if (!originData) {
       originData = {}
@@ -63,15 +54,16 @@ export const storeData = async (data) => {
       window.takeOverAppMethods.saveMindMapData(originData)
       return
     }
-    
-    // 使用GitHub存储
-    const file = await getFile('data.smm')
-    const content = JSON.stringify(originData)
-    const message = `Update mind map data at ${new Date().toISOString()}`
-    await saveFile('data.smm', content, message, file ? file.sha : null)
+    Vue.prototype.$bus.$emit('write_local_file', originData)
+    if (vuexStore.state.isHandleLocalFile) {
+      return
+    }
+    localStorage.setItem(SIMPLE_MIND_MAP_DATA, JSON.stringify(originData))
   } catch (error) {
-    console.error('存储数据失败:', error)
-    Vue.prototype.$bus.$emit('storageError', error)
+    console.log(error)
+    if ('exceeded') {
+      Vue.prototype.$bus.$emit('localStorageExceeded')
+    }
   }
 }
 

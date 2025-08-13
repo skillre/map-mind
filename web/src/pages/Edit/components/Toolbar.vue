@@ -26,35 +26,35 @@
       </div>
       <!-- 导出 -->
       <div class="toolbarBlock">
+        <div class="toolbarBtn" @click="initGitHub" v-if="!isMobile">
+          <span class="icon iconfont icondakai"></span>
+          <span class="text">GitHub配置</span>
+        </div>
         <el-tooltip
           effect="dark"
-          :content="$t('toolbar.newFileTip')"
+          content="新建GitHub文件"
           placement="bottom"
           v-if="!isMobile"
         >
-          <div class="toolbarBtn" @click="createNewFile">
-            <span class="icon iconfont iconxinjianwenjian"></span>
+          <div class="toolbarBtn" @click="createNewGitHubFile">
+            <span class="icon iconfont iconxinjian"></span>
             <span class="text">{{ $t('toolbar.newFile') }}</span>
           </div>
         </el-tooltip>
         <el-tooltip
           effect="dark"
-          :content="$t('toolbar.openFileTip')"
+          content="打开GitHub文件"
           placement="bottom"
           v-if="!isMobile"
         >
-          <div class="toolbarBtn" @click="showGitHubFiles">
+          <div class="toolbarBtn" @click="openGitHubFile">
             <span class="icon iconfont iconwenjian1"></span>
             <span class="text">{{ $t('toolbar.openFile') }}</span>
           </div>
         </el-tooltip>
-        <div class="toolbarBtn" @click="saveToGitHub" v-if="!isMobile">
+        <div class="toolbarBtn" @click="saveToGitHubNow" v-if="!isMobile">
           <span class="icon iconfont iconlingcunwei"></span>
-          <span class="text">{{ $t('toolbar.save') }}</span>
-        </div>
-        <div class="toolbarBtn" @click="showGitHubConfig" v-if="!isMobile">
-          <span class="icon iconfont iconshezhi"></span>
-          <span class="text">GitHub</span>
+          <span class="text">保存到GitHub</span>
         </div>
         <div class="toolbarBtn" @click="$bus.$emit('showImport')">
           <span class="icon iconfont icondaoru"></span>
@@ -68,58 +68,68 @@
           <span class="icon iconfont iconexport"></span>
           <span class="text">{{ $t('toolbar.export') }}</span>
         </div>
-        <!-- GitHub文件列表对话框 -->
-        <el-dialog
-          title="GitHub文件"
-          :visible.sync="gitHubFilesVisible"
-          width="500px"
-          :append-to-body="true"
+        <!-- 本地文件树 -->
+        <div
+          class="fileTreeBox"
+          v-if="fileTreeVisible"
+          :class="{ expand: fileTreeExpand }"
         >
-          <el-table
-            :data="gitHubFiles"
-            style="width: 100%"
-            max-height="400"
-            empty-text="暂无文件"
-          >
-            <el-table-column prop="name" label="文件名" width="300"></el-table-column>
-            <el-table-column label="操作" width="120">
-              <template slot-scope="scope">
-                <el-button
-                  size="mini"
-                  type="primary"
-                  @click="openGitHubFile(scope.row)"
-                >打开</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-dialog>
-
-        <!-- GitHub配置对话框 -->
-        <el-dialog
-          title="GitHub配置"
-          :visible.sync="gitHubConfigVisible"
-          width="400px"
-          :append-to-body="true"
-        >
-          <el-form :model="gitHubConfig" label-width="80px">
-            <el-form-item label="用户名">
-              <el-input v-model="gitHubConfig.owner" placeholder="GitHub用户名"></el-input>
-            </el-form-item>
-            <el-form-item label="仓库名">
-              <el-input v-model="gitHubConfig.repo" placeholder="仓库名称"></el-input>
-            </el-form-item>
-            <el-form-item label="Token">
-              <el-input v-model="gitHubConfig.token" type="password" placeholder="GitHub Personal Access Token"></el-input>
-            </el-form-item>
-            <el-form-item label="分支">
-              <el-input v-model="gitHubConfig.branch" placeholder="分支名称，默认main"></el-input>
-            </el-form-item>
-          </el-form>
-          <div slot="footer" class="dialog-footer">
-            <el-button @click="gitHubConfigVisible = false">取消</el-button>
-            <el-button type="primary" @click="saveGitHubConfig">保存</el-button>
+          <div class="fileTreeToolbar">
+            <div class="fileTreeName">
+              {{ rootDirName ? '/' + rootDirName : '' }}
+            </div>
+            <div class="fileTreeActionList">
+              <div
+                class="btn"
+                :class="[
+                  fileTreeExpand ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
+                ]"
+                @click="fileTreeExpand = !fileTreeExpand"
+              ></div>
+              <div
+                class="btn el-icon-close"
+                @click="fileTreeVisible = false"
+              ></div>
+            </div>
           </div>
-        </el-dialog>
+          <div class="fileTreeWrap">
+            <el-tree
+              :props="fileTreeProps"
+              :load="loadFileTreeNode"
+              :expand-on-click-node="false"
+              node-key="id"
+              lazy
+            >
+              <span class="customTreeNode" slot-scope="{ node, data }">
+                <div class="treeNodeInfo">
+                  <span
+                    class="treeNodeIcon iconfont"
+                    :class="[
+                      data.type === 'file' ? 'iconwenjian' : 'icondakai'
+                    ]"
+                  ></span>
+                  <span class="treeNodeName">{{ node.label }}</span>
+                </div>
+                <div class="treeNodeBtnList" v-if="data.type === 'file'">
+                  <el-button
+                    type="text"
+                    size="mini"
+                    v-if="data.enableEdit"
+                    @click="editLocalFile(data)"
+                    >编辑</el-button
+                  >
+                  <el-button
+                    type="text"
+                    size="mini"
+                    v-else
+                    @click="importLocalFile(data)"
+                    >导入</el-button
+                  >
+                </div>
+              </span>
+            </el-tree>
+          </div>
+        </div>
       </div>
     </div>
     <NodeImage></NodeImage>
@@ -144,11 +154,15 @@ import { mapState } from 'vuex'
 import { Notification } from 'element-ui'
 import exampleData from 'simple-mind-map/example/exampleData'
 import { getData } from '../../../api'
+import GitHubService from '../../../api/github'
 import ToolbarNodeBtnList from './ToolbarNodeBtnList.vue'
 import { throttle, isMobile } from 'simple-mind-map/src/utils/index'
 
 // 工具栏
 let fileHandle = null
+let githubService = null
+let currentFilePath = null
+let currentFileSHA = null
 const defaultBtnList = [
   'back',
   'forward',
@@ -188,17 +202,15 @@ export default {
       verticalList: [],
       showMoreBtn: true,
       popoverShow: false,
-      gitHubFilesVisible: false,
-      gitHubConfigVisible: false,
-      gitHubFiles: [],
-      gitHubConfig: {
-        owner: localStorage.getItem('github_owner') || '',
-        repo: localStorage.getItem('github_repo') || '',
-        token: localStorage.getItem('github_token') || '',
-        branch: localStorage.getItem('github_branch') || 'main'
+      fileTreeProps: {
+        label: 'name',
+        children: 'children',
+        isLeaf: 'leaf'
       },
-      currentFileName: 'data.smm',
-      autoSaveInterval: null
+      fileTreeVisible: false,
+      rootDirName: '',
+      fileTreeExpand: true,
+      waitingWriteToLocalFile: false
     }
   },
   computed: {
@@ -238,20 +250,21 @@ export default {
     }
   },
   created() {
-    this.initGitHubStorage()
-    this.startAutoSave()
+    this.$bus.$on('write_local_file', this.onWriteLocalFile)
   },
   mounted() {
     this.computeToolbarShow()
     this.computeToolbarShowThrottle = throttle(this.computeToolbarShow, 300)
     window.addEventListener('resize', this.computeToolbarShowThrottle)
     this.$bus.$on('lang_change', this.computeToolbarShowThrottle)
+    window.addEventListener('beforeunload', this.onUnload)
     this.$bus.$on('node_note_dblclick', this.onNodeNoteDblclick)
   },
   beforeDestroy() {
-    this.stopAutoSave()
+    this.$bus.$off('write_local_file', this.onWriteLocalFile)
     window.removeEventListener('resize', this.computeToolbarShowThrottle)
     this.$bus.$off('lang_change', this.computeToolbarShowThrottle)
+    window.removeEventListener('beforeunload', this.onUnload)
     this.$bus.$off('node_note_dblclick', this.onNodeNoteDblclick)
   },
   methods: {
@@ -283,131 +296,366 @@ export default {
       loopCheck()
     },
 
-    // 初始化GitHub存储
-    async initGitHubStorage() {
-      const config = this.gitHubConfig
-      if (config.owner && config.repo && config.token) {
-        try {
-          const { initGitHub } = await import('@/api')
-          initGitHub(config.owner, config.repo, config.token, config.branch)
-          this.$message.success('GitHub存储已初始化')
-        } catch (error) {
-          console.error('初始化GitHub存储失败:', error)
-          this.$message.error('GitHub存储初始化失败')
-        }
+    // 监听本地文件读写
+    onWriteLocalFile(content) {
+      clearTimeout(this.timer)
+      if (fileHandle && this.isHandleLocalFile) {
+        this.waitingWriteToLocalFile = true
+      }
+      // 如果使用GitHub存储，则保存到GitHub
+      if (githubService && currentFilePath) {
+        this.timer = setTimeout(() => {
+          this.saveToGitHub(content)
+        }, 3000) // 3秒自动保存一次
+      } else if (this.isHandleLocalFile) {
+        this.timer = setTimeout(() => {
+          this.writeLocalFile(content)
+        }, 1000)
       }
     },
 
-    // 显示GitHub配置
-    showGitHubConfig() {
-      this.gitHubConfigVisible = true
+    // 初始化GitHub服务
+    initGitHubService(token, owner, repo) {
+      githubService = new GitHubService(token, owner, repo)
+      this.$message.success('GitHub集成已初始化')
     },
 
-    // 保存GitHub配置
-    async saveGitHubConfig() {
-      try {
-        localStorage.setItem('github_owner', this.gitHubConfig.owner)
-        localStorage.setItem('github_repo', this.gitHubConfig.repo)
-        localStorage.setItem('github_token', this.gitHubConfig.token)
-        localStorage.setItem('github_branch', this.gitHubConfig.branch)
-        
-        await this.initGitHubStorage()
-        this.gitHubConfigVisible = false
-        this.$message.success('配置已保存')
-      } catch (error) {
-        this.$message.error('保存配置失败')
+    // 从GitHub加载文件
+    async loadFromGitHub(filePath) {
+      if (!githubService) {
+        this.$message.error('请先配置GitHub集成')
+        return
       }
-    },
 
-    // 显示GitHub文件列表
-    async showGitHubFiles() {
       try {
-        const { getFileList } = await import('@/api/github')
-        this.gitHubFiles = await getFileList()
-        this.gitHubFilesVisible = true
-      } catch (error) {
-        console.error('获取文件列表失败:', error)
-        this.$message.error('获取文件列表失败')
-      }
-    },
-
-    // 打开GitHub文件
-    async openGitHubFile(file) {
-      try {
-        const { getFile } = await import('@/api/github')
-        const fileData = await getFile(file.path)
+        const fileData = await githubService.getFile(filePath)
         if (fileData) {
-          this.setData(JSON.stringify(fileData.content))
-          this.currentFileName = file.name
-          this.gitHubFilesVisible = false
-          this.$message.success(`已打开: ${file.name}`)
+          currentFilePath = filePath
+          currentFileSHA = fileData.sha
+          this.setData(fileData.content)
+          this.$message.success(`成功加载文件: ${filePath}`)
+        } else {
+          this.$message.error(`文件不存在: ${filePath}`)
         }
       } catch (error) {
-        console.error('打开文件失败:', error)
-        this.$message.error('打开文件失败')
+        console.error('加载GitHub文件失败:', error)
+        this.$message.error('加载文件失败: ' + error.message)
       }
     },
 
     // 保存到GitHub
-    async saveToGitHub() {
-      try {
-        const { getData, storeData } = await import('@/api')
-        const data = await getData()
-        await storeData(data)
-        this.$message.success('已保存到GitHub')
-      } catch (error) {
-        console.error('保存失败:', error)
-        this.$message.error('保存失败')
+    async saveToGitHub(content) {
+      if (!githubService || !currentFilePath) {
+        return
       }
-    },
 
-    // 创建新文件
-    async createNewFile() {
       try {
-        const { saveFile } = await import('@/api/github')
-        const fileName = `mindmap_${Date.now()}.smm`
-        const content = exampleData
-        const message = `Create new mind map: ${fileName}`
-        
-        await saveFile(fileName, content, message)
-        this.currentFileName = fileName
-        this.$bus.$emit('setData', content)
-        this.$message.success('新文件已创建')
-      } catch (error) {
-        console.error('创建文件失败:', error)
-        this.$message.error('创建文件失败')
-      }
-    },
-
-    // 开始自动保存
-    startAutoSave() {
-      // 每30秒自动保存一次
-      this.autoSaveInterval = setInterval(() => {
-        if (this.gitHubConfig.owner && this.gitHubConfig.repo && this.gitHubConfig.token) {
-          this.saveToGitHub()
+        if (typeof content !== 'string') {
+          content = JSON.stringify(content)
         }
-      }, 30000)
-    },
-
-    // 停止自动保存
-    stopAutoSave() {
-      if (this.autoSaveInterval) {
-        clearInterval(this.autoSaveInterval)
-        this.autoSaveInterval = null
+        
+        const result = await githubService.saveFile(
+          currentFilePath, 
+          content, 
+          `Update mind map ${new Date().toLocaleString()}`,
+          'main',
+          currentFileSHA
+        )
+        
+        currentFileSHA = result.content.sha
+        this.$message.success('文件已保存到GitHub')
+      } catch (error) {
+        console.error('保存到GitHub失败:', error)
+        this.$message.error('保存文件失败: ' + error.message)
       }
     },
 
-    // 渲染数据
+    onUnload(e) {
+      if (this.waitingWriteToLocalFile) {
+        const msg = '存在未保存的数据'
+        e.returnValue = msg
+        return msg
+      }
+      
+      // 如果有GitHub未保存的数据，也提示
+      if (githubService && currentFilePath) {
+        const msg = '存在未保存到GitHub的数据'
+        e.returnValue = msg
+        return msg
+      }
+    },
+
+    // 打开GitHub文件选择对话框
+    async openGitHubFile() {
+      // 这里应该弹出一个对话框让用户输入文件路径
+      // 简化处理，使用prompt
+      const filePath = prompt('请输入GitHub上的文件路径:')
+      if (filePath) {
+        await this.loadFromGitHub(filePath)
+      }
+    },
+
+    // 新建GitHub文件
+    async createNewGitHubFile() {
+      if (!githubService) {
+        this.$message.error('请先配置GitHub集成')
+        return
+      }
+      
+      const filePath = prompt('请输入新文件路径 (例如: mindmaps/new-map.smm):', 'mindmaps/new-map.smm')
+      if (filePath) {
+        try {
+          currentFilePath = filePath
+          currentFileSHA = null
+          const content = JSON.stringify(exampleData)
+          await this.saveToGitHub(content)
+          this.setData(content)
+          this.$message.success(`已创建新文件: ${filePath}`)
+        } catch (error) {
+          console.error('创建文件失败:', error)
+          this.$message.error('创建文件失败: ' + error.message)
+        }
+      }
+    },
+
+    // 立即保存到GitHub
+    async saveToGitHubNow() {
+      if (!githubService || !currentFilePath) {
+        this.$message.warning('没有可保存的GitHub文件')
+        return
+      }
+
+      const data = getData()
+      await this.saveToGitHub(data)
+    },
+
+    // 初始化GitHub配置
+    initGitHub() {
+      const token = prompt('请输入GitHub Personal Access Token:')
+      const owner = prompt('请输入仓库所有者用户名:')
+      const repo = prompt('请输入仓库名称:')
+      
+      if (token && owner && repo) {
+        try {
+          this.initGitHubService(token, owner, repo)
+        } catch (error) {
+          this.$message.error('GitHub配置失败: ' + error.message)
+        }
+      }
+    },
+
+    // 加载本地文件树
+    async loadFileTreeNode(node, resolve) {
+      try {
+        let dirHandle
+        if (node.level === 0) {
+          dirHandle = await window.showDirectoryPicker()
+          this.rootDirName = dirHandle.name
+        } else {
+          dirHandle = node.data.handle
+        }
+        const dirList = []
+        const fileList = []
+        for await (const [key, value] of dirHandle.entries()) {
+          const isFile = value.kind === 'file'
+          if (isFile && !/\.(smm|xmind|md|json)$/.test(value.name)) {
+            continue
+          }
+          const enableEdit = isFile && /\.smm$/.test(value.name)
+          const data = {
+            id: key,
+            name: value.name,
+            type: value.kind,
+            handle: value,
+            leaf: isFile,
+            enableEdit
+          }
+          if (isFile) {
+            fileList.push(data)
+          } else {
+            dirList.push(data)
+          }
+        }
+        resolve([...dirList, ...fileList])
+      } catch (error) {
+        console.log(error)
+        this.fileTreeVisible = false
+        resolve([])
+        if (error.toString().includes('aborted')) {
+          return
+        }
+        this.$message.warning(this.$t('toolbar.notSupportTip'))
+      }
+    },
+
+    // 扫描本地文件夹
+    openDirectory() {
+      this.fileTreeVisible = false
+      this.fileTreeExpand = true
+      this.rootDirName = ''
+      this.$nextTick(() => {
+        this.fileTreeVisible = true
+      })
+    },
+
+    // 编辑指定文件
+    editLocalFile(data) {
+      if (data.handle) {
+        fileHandle = data.handle
+        this.readFile()
+      }
+    },
+
+    // 导入指定文件
+    async importLocalFile(data) {
+      try {
+        const file = await data.handle.getFile()
+        this.$refs.ImportRef.onChange({
+          raw: file,
+          name: file.name
+        })
+        this.$refs.ImportRef.confirm()
+      } catch (error) {
+        console.log(error)
+      }
+    },
+
+    // 打开本地文件
+    async openLocalFile() {
+      try {
+        let [_fileHandle] = await window.showOpenFilePicker({
+          types: [
+            {
+              description: '',
+              accept: {
+                'application/json': ['.smm']
+              }
+            }
+          ],
+          excludeAcceptAllOption: true,
+          multiple: false
+        })
+        if (!_fileHandle) {
+          return
+        }
+        fileHandle = _fileHandle
+        if (fileHandle.kind === 'directory') {
+          this.$message.warning(this.$t('toolbar.selectFileTip'))
+          return
+        }
+        this.readFile()
+      } catch (error) {
+        console.log(error)
+        if (error.toString().includes('aborted')) {
+          return
+        }
+        this.$message.warning(this.$t('toolbar.notSupportTip'))
+      }
+    },
+
+    // 读取本地文件
+    async readFile() {
+      let file = await fileHandle.getFile()
+      let fileReader = new FileReader()
+      fileReader.onload = async () => {
+        this.$store.commit('setIsHandleLocalFile', true)
+        this.setData(fileReader.result)
+        Notification.closeAll()
+        Notification({
+          title: this.$t('toolbar.tip'),
+          message: `${this.$t('toolbar.editingLocalFileTipFront')}${
+            file.name
+          }${this.$t('toolbar.editingLocalFileTipEnd')}`,
+          duration: 0,
+          showClose: true
+        })
+      }
+      fileReader.readAsText(file)
+    },
+
+    // 渲染读取的数据
     setData(str) {
       try {
         let data = JSON.parse(str)
         if (typeof data !== 'object') {
           throw new Error(this.$t('toolbar.fileContentError'))
         }
+        if (data.root) {
+          this.isFullDataFile = true
+        } else {
+          this.isFullDataFile = false
+          data = {
+            ...exampleData,
+            root: data
+          }
+        }
         this.$bus.$emit('setData', data)
       } catch (error) {
         console.log(error)
         this.$message.error(this.$t('toolbar.fileOpenFailed'))
+      }
+    },
+
+    // 写入本地文件
+    async writeLocalFile(content) {
+      if (!fileHandle || !this.isHandleLocalFile) {
+        this.waitingWriteToLocalFile = false
+        return
+      }
+      if (!this.isFullDataFile) {
+        content = content.root
+      }
+      let string = JSON.stringify(content)
+      const writable = await fileHandle.createWritable()
+      await writable.write(string)
+      await writable.close()
+      this.waitingWriteToLocalFile = false
+    },
+
+    // 创建本地文件
+    async createNewLocalFile() {
+      await this.createLocalFile(exampleData)
+    },
+
+    // 另存为
+    async saveLocalFile() {
+      let data = getData()
+      await this.createLocalFile(data)
+    },
+
+    // 创建本地文件
+    async createLocalFile(content) {
+      try {
+        let _fileHandle = await window.showSaveFilePicker({
+          types: [
+            {
+              description: '',
+              accept: { 'application/json': ['.smm'] }
+            }
+          ],
+          suggestedName: this.$t('toolbar.defaultFileName')
+        })
+        if (!_fileHandle) {
+          return
+        }
+        const loading = this.$loading({
+          lock: true,
+          text: this.$t('toolbar.creatingTip'),
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+        fileHandle = _fileHandle
+        this.$store.commit('setIsHandleLocalFile', true)
+        this.isFullDataFile = true
+        await this.writeLocalFile(content)
+        await this.readFile()
+        loading.close()
+      } catch (error) {
+        console.log(error)
+        if (error.toString().includes('aborted')) {
+          return
+        }
+        this.$message.warning(this.$t('toolbar.notSupportTip'))
       }
     },
 
