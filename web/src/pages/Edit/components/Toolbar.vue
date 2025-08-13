@@ -56,6 +56,10 @@
           <span class="icon iconfont iconlingcunwei"></span>
           <span class="text">保存到GitHub</span>
         </div>
+        <div class="toolbarBtn" @click="logoutGitHub" v-if="!isMobile">
+          <span class="icon iconfont icongit-logout"></span>
+          <span class="text">登出GitHub</span>
+        </div>
         <div class="toolbarBtn" @click="$bus.$emit('showImport')">
           <span class="icon iconfont icondaoru"></span>
           <span class="text">{{ $t('toolbar.import') }}</span>
@@ -431,17 +435,27 @@ export default {
 
     // 初始化GitHub配置
     initGitHub() {
-      const token = prompt('请输入GitHub Personal Access Token:')
-      const owner = prompt('请输入仓库所有者用户名:')
-      const repo = prompt('请输入仓库名称:')
-      
-      if (token && owner && repo) {
-        try {
-          this.initGitHubService(token, owner, repo)
-        } catch (error) {
-          this.$message.error('GitHub配置失败: ' + error.message)
-        }
-      }
+      this.$prompt('请输入GitHub Personal Access Token', 'GitHub 配置', {
+        inputType: 'password',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }).then(({ value: token }) => {
+        this.$prompt('请输入仓库所有者用户名', 'GitHub 配置', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消'
+        }).then(({ value: owner }) => {
+          this.$prompt('请输入仓库名称', 'GitHub 配置', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消'
+          }).then(({ value: repo }) => {
+            try {
+              this.initGitHubService(token, owner, repo)
+            } catch (error) {
+              this.$message.error('GitHub配置失败: ' + error.message)
+            }
+          })
+        })
+      })
     },
 
     // 加载本地文件树

@@ -25,7 +25,7 @@ class GitHubService {
         }
       })
       return {
-        content: atob(response.data.content),
+        content: decodeURIComponent(escape(atob(response.data.content))),
         sha: response.data.sha
       }
     } catch (error) {
