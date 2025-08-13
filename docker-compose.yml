@@ -7,8 +7,5 @@ services:
       - "8080:80"
     container_name: simple-mind-map
     restart: unless-stopped
-    volumes:
-      # 如果需要持久化某些配置，可以挂载卷
-      # - ./data:/app/data
     environment:
       - NODE_ENV=production
