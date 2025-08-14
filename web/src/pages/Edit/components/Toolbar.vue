@@ -26,39 +26,35 @@
       </div>
       <!-- 导出 -->
       <div class="toolbarBlock">
-        <div class="toolbarBtn" @click="initGitHub" v-if="!isMobile">
-          <span class="icon iconfont icondakai"></span>
-          <span class="text">GitHub配置</span>
+        <div class="toolbarBtn" @click="$bus.$emit('showImport')">
+          <span class="icon iconfont icondaoru"></span>
+          <span class="text">{{ $t('toolbar.import') }}</span>
         </div>
-        <el-tooltip
-          effect="dark"
-          content="新建GitHub文件"
-          placement="bottom"
-          v-if="!isMobile"
+        <div
+          class="toolbarBtn"
+          @click="$bus.$emit('showExport')"
+          style="margin-right: 0;"
         >
-          <div class="toolbarBtn" @click="createNewGitHubFile">
-            <span class="icon iconfont iconxinjian"></span>
-            <span class="text">{{ $t('toolbar.newFile') }}</span>
-          </div>
-        </el-tooltip>
-        <el-tooltip
-          effect="dark"
-          content="打开GitHub文件"
-          placement="bottom"
+          <span class="icon iconfont iconexport"></span>
+          <span class="text">{{ $t('toolbar.export') }}</span>
+        </div>
+        <!-- GitHub操作 -->
+        <el-popover
+          v-model="githubPopoverShow"
+          placement="bottom-end"
+          width="140"
+          trigger="hover"
         >
-          <div class="toolbarBtn" @click="openGitHubFile">
-            <span class="icon iconfont iconwenjian1"></span>
-            <span class="text">{{ $t('toolbar.openFile') }}</span>
+          <ToolbarNodeBtnList
+            dir="v"
+            :list="githubBtnList"
+            @click.native="githubPopoverShow = false"
+          ></ToolbarNodeBtnList>
+          <div slot="reference" class="toolbarBtn">
+            <span class="icon iconfont icongit-branch"></span>
+            <span class="text">{{ $t('toolbar.github') }}</span>
           </div>
-        </el-tooltip>
-        <div class="toolbarBtn" @click="saveToGitHubNow">
-          <span class="icon iconfont iconlingcunwei"></span>
-          <span class="text">保存到GitHub</span>
-        </div>
-        <div class="toolbarBtn" @click="logoutGitHub">
-          <span class="icon iconfont icongit-logout"></span>
-          <span class="text">登出GitHub</span>
-        </div>
+        </el-popover>
         <div class="toolbarBtn" @click="$bus.$emit('showImport')">
           <span class="icon iconfont icondaoru"></span>
           <span class="text">{{ $t('toolbar.import') }}</span>
@@ -184,7 +180,12 @@ const defaultBtnList = [
   // 'attachment',
   'outerFrame',
   'annotation',
-  'ai'
+  'ai',
+  'githubConfig', // 添加GitHub配置按钮
+  'githubNew',    // 添加新建GitHub文件按钮
+  'githubOpen',   // 添加打开GitHub文件按钮
+  'githubSave',   // 添加保存到GitHub按钮
+  'githubLogout'  // 添加登出GitHub按钮
 ]
 
 export default {
@@ -205,6 +206,42 @@ export default {
       verticalList: [],
       showMoreBtn: true,
       popoverShow: false,
+      githubPopoverShow: false,
+      fileTreeProps: {
+      popoverShow: false,
+      githubPopoverShow: false,
+      githubBtnList: [
+        {
+          key: 'githubConfig',
+          icon: 'icondakai',
+          text: 'GitHub配置',
+          handler: this.initGitHub
+        },
+        {
+          key: 'githubNew',
+          icon: 'iconxinjian',
+          text: this.$t('toolbar.newFile'),
+          handler: this.createNewGitHubFile
+        },
+        {
+          key: 'githubOpen',
+          icon: 'iconwenjian1',
+          text: this.$t('toolbar.openFile'),
+          handler: this.openGitHubFile
+        },
+        {
+          key: 'githubSave',
+          icon: 'iconlingcunwei',
+          text: '保存到GitHub',
+          handler: this.saveToGitHubNow
+        },
+        {
+          key: 'githubLogout',
+          icon: 'icongit-logout',
+          text: '登出GitHub',
+          handler: this.logoutGitHub
+        }
+      ],
       fileTreeProps: {
         label: 'name',
         children: 'children',
