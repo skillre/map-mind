@@ -45,18 +45,17 @@
           effect="dark"
           content="打开GitHub文件"
           placement="bottom"
-          v-if="!isMobile"
         >
           <div class="toolbarBtn" @click="openGitHubFile">
             <span class="icon iconfont iconwenjian1"></span>
             <span class="text">{{ $t('toolbar.openFile') }}</span>
           </div>
         </el-tooltip>
-        <div class="toolbarBtn" @click="saveToGitHubNow" v-if="!isMobile">
+        <div class="toolbarBtn" @click="saveToGitHubNow">
           <span class="icon iconfont iconlingcunwei"></span>
           <span class="text">保存到GitHub</span>
         </div>
-        <div class="toolbarBtn" @click="logoutGitHub" v-if="!isMobile">
+        <div class="toolbarBtn" @click="logoutGitHub">
           <span class="icon iconfont icongit-logout"></span>
           <span class="text">登出GitHub</span>
         </div>
@@ -435,27 +434,27 @@ export default {
 
     // 初始化GitHub配置
     initGitHub() {
-      this.$prompt('请输入GitHub Personal Access Token', 'GitHub 配置', {
-        inputType: 'password',
-        confirmButtonText: '确定',
-        cancelButtonText: '取消'
-      }).then(({ value: token }) => {
-        this.$prompt('请输入仓库所有者用户名', 'GitHub 配置', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消'
-        }).then(({ value: owner }) => {
-          this.$prompt('请输入仓库名称', 'GitHub 配置', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消'
-          }).then(({ value: repo }) => {
-            try {
-              this.initGitHubService(token, owner, repo)
-            } catch (error) {
-              this.$message.error('GitHub配置失败: ' + error.message)
-            }
-          })
-        })
-      })
+      const token = prompt('请输入GitHub Personal Access Token:')
+      const owner = prompt('请输入仓库所有者用户名:')
+      const repo = prompt('请输入仓库名称:')
+      
+      if (token && owner && repo) {
+        try {
+          this.initGitHubService(token, owner, repo)
+        } catch (error) {
+          this.$message.error('GitHub配置失败: ' + error.message)
+        }
+      }
+    },
+
+    // 登出GitHub
+    logoutGitHub() {
+      if (githubService) {
+        githubService = null
+        currentFilePath = null
+        currentFileSHA = null
+        this.$message.success('已登出GitHub')
+      }
     },
 
     // 加载本地文件树

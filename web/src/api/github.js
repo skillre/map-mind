@@ -24,8 +24,14 @@ class GitHubService {
           ref: branch
         }
       })
+      
+      // 解码base64内容
+      const decodedContent = atob(response.data.content)
+      // 处理UTF-8编码
+      const decodedUTF8 = decodeURIComponent(escape(decodedContent))
+      
       return {
-        content: decodeURIComponent(escape(atob(response.data.content))),
+        content: decodedUTF8,
         sha: response.data.sha
       }
     } catch (error) {
@@ -38,9 +44,18 @@ class GitHubService {
 
   // 创建或更新文件
   async saveFile(filePath, content, message, branch = 'main', sha = null) {
+    // 确保内容是字符串
+    if (typeof content !== 'string') {
+      content = JSON.stringify(content, null, 2)
+    }
+    
+    // UTF-8编码后再base64编码
+    const encodedUTF8 = unescape(encodeURIComponent(content))
+    const base64Content = btoa(encodedUTF8)
+    
     const data = {
       message,
-      content: btoa(unescape(encodeURIComponent(content))),
+      content: base64Content,
       branch
     }
     
