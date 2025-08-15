@@ -1,25 +1,17 @@
 FROM nginx:alpine
 
-# 设置工作目录
-WORKDIR /app
+# 安装wget用于健康检查
+RUN apk add --no-cache wget
 
-# 复制nginx配置文件
-COPY nginx.conf /etc/nginx/nginx.conf
+# 删除默认的nginx配置
+RUN rm /etc/nginx/conf.d/default.conf
 
-# 复制前端静态文件
-COPY ./index.html ./
-COPY ./dist ./dist
+# 复制自定义nginx配置文件
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# 创建非root用户以提高安全性
-RUN addgroup -g 1001 -S nginx && \
-    adduser -S nginx -u 1001 -G nginx && \
-    chown -R nginx:nginx /app && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d
-
-# 设置用户
-USER nginx
+# 复制前端静态文件到nginx默认目录
+COPY ./index.html /usr/share/nginx/html/
+COPY ./dist /usr/share/nginx/html/dist/
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
