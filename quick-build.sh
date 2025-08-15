@@ -7,8 +7,10 @@ echo "===== 快速构建脚本 ====="
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
 
-# 设置Docker镜像源
-echo '{"registry-mirrors": ["https://registry.docker-cn.com", "https://docker.mirrors.ustc.edu.cn", "https://hub-mirror.c.163.com"]}' > ~/.docker/config.json
+# 设置构建参数
+export BUILDKIT_PROGRESS=plain
+# 清理Docker缓存以避免潜在问题
+docker system prune -f --volumes
 
 # 直接使用docker命令构建，跳过docker-compose
 echo "正在构建应用..."

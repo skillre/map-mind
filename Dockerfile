@@ -1,5 +1,5 @@
-# 构建阶段 - 使用国内镜像源
-FROM registry.npmmirror.com/node:16-alpine AS builder
+# 构建阶段
+FROM node:16-alpine AS builder
 
 WORKDIR /app
 
@@ -18,8 +18,8 @@ COPY web/ ./
 # 构建应用
 RUN npm run build
 
-# 部署阶段 - 使用国内镜像源
-FROM registry.npmmirror.com/nginx:alpine
+# 部署阶段
+FROM nginx:alpine
 
 # 设置工作目录
 WORKDIR /app

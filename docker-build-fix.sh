@@ -24,10 +24,10 @@ export COMPOSE_DOCKER_CLI_BUILD=1
 echo "正在清理Docker缓存..."
 docker system prune -f
 
-# 拉取基础镜像
+# 拉取基础镜像并显示进度
 echo "正在预先拉取基础镜像..."
-docker pull node:16-alpine
-docker pull nginx:alpine
+docker pull node:16-alpine --quiet && echo "✓ node:16-alpine 拉取成功" || echo "✗ node:16-alpine 拉取失败"
+docker pull nginx:alpine --quiet && echo "✓ nginx:alpine 拉取成功" || echo "✗ nginx:alpine 拉取失败"
 
 # 设置构建参数
 export BUILDKIT_PROGRESS=plain

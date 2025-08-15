@@ -17,11 +17,13 @@
 
 我们已经优化了Dockerfile和docker-compose.yml文件，主要改进包括：
 
-- 使用国内npm镜像源加速依赖安装
+- 设置npm镜像源加速依赖安装
 - 使用`npm install`替代`npm ci`以提高兼容性
 - 移除过时的`version`字段
 - 添加BuildKit相关配置加速构建
 - 限制构建平台为`linux/amd64`
+
+**注意**：我们已移除了使用registry.npmmirror.com作为基础镜像源的配置，因为它可能导致"not found"错误。现在使用官方Docker Hub镜像源。
 
 ### 2. 使用构建优化脚本
 
