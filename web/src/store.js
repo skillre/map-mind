@@ -21,6 +21,8 @@ const store = new Vuex.Store({
       // 是否开启AI功能
       enableAi: true
     },
+    githubConfig: null, // GitHub配置
+    githubFileSha: null, // GitHub文件的SHA值
     activeSidebar: '', // 当前显示的侧边栏
     isOutlineEdit: false, // 是否是大纲编辑模式
     isReadonly: false, // 是否只读
@@ -59,6 +61,17 @@ const store = new Vuex.Store({
         ...state.localConfig,
         ...state.aiConfig
       })
+    },
+
+    // 设置GitHub配置
+    setGithubConfig(state, data) {
+      state.githubConfig = data
+      localStorage.setItem('GITHUB_CONFIG', JSON.stringify(data))
+    },
+    
+    // 设置GitHub文件SHA
+    setGithubFileSha(state, data) {
+      state.githubFileSha = data
     },
 
     // 设置当前显示的侧边栏

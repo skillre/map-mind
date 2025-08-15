@@ -2,21 +2,26 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import './i18n'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
+import '@/style/index.less'
 import '@/assets/icon-font/iconfont.css'
-import 'viewerjs/dist/viewer.css'
-import VueViewer from 'v-viewer'
-import i18n from './i18n'
-import { getLang } from '@/api'
+import VueClipboard from 'vue-clipboard2'
+import GithubStorage from '@/utils/githubStorage'
+
+Vue.config.productionTip = false
+Vue.use(ElementUI)
+Vue.use(VueClipboard)
+
+// 初始化GitHub存储服务
+GithubStorage.init()
+
 // import VConsole from 'vconsole'
 // const vConsole = new VConsole()
 
-Vue.config.productionTip = false
-const bus = new Vue()
-Vue.prototype.$bus = bus
-Vue.use(ElementUI)
-Vue.use(VueViewer)
+// 总线
+Vue.prototype.$bus = new Vue()
 
 const initApp = () => {
   i18n.locale = getLang()

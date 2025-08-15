@@ -2,6 +2,7 @@ import exampleData from 'simple-mind-map/example/exampleData'
 import { simpleDeepClone } from 'simple-mind-map/src/utils/index'
 import Vue from 'vue'
 import vuexStore from '@/store'
+import GithubStorage from '@/utils/githubStorage'
 
 const SIMPLE_MIND_MAP_DATA = 'SIMPLE_MIND_MAP_DATA'
 const SIMPLE_MIND_MAP_CONFIG = 'SIMPLE_MIND_MAP_CONFIG'
@@ -11,16 +12,26 @@ const SIMPLE_MIND_MAP_LOCAL_CONFIG = 'SIMPLE_MIND_MAP_LOCAL_CONFIG'
 let mindMapData = null
 
 // 获取缓存的思维导图数据
-export const getData = () => {
+export const getData = async () => {
   // 接管模式
   if (window.takeOverApp) {
     mindMapData = window.takeOverAppMethods.getMindMapData()
     return mindMapData
   }
-  // 操作本地文件模式
-  if (vuexStore.state.isHandleLocalFile) {
-    return Vue.prototype.getCurrentData()
+  
+  // GitHub存储模式
+  const githubConfig = vuexStore.state.githubConfig
+  if (githubConfig) {
+    try {
+      const data = await GithubStorage.load()
+      return data || simpleDeepClone(exampleData)
+    } catch (error) {
+      console.error('Failed to load from GitHub, using example data:', error)
+      return simpleDeepClone(exampleData)
+    }
   }
+  
+  // 默认使用localStorage（向后兼容）
   let store = localStorage.getItem(SIMPLE_MIND_MAP_DATA)
   if (store === null) {
     return simpleDeepClone(exampleData)
@@ -54,10 +65,15 @@ export const storeData = data => {
       window.takeOverAppMethods.saveMindMapData(originData)
       return
     }
-    Vue.prototype.$bus.$emit('write_local_file', originData)
-    if (vuexStore.state.isHandleLocalFile) {
+    
+    // 使用GitHub存储
+    const githubConfig = vuexStore.state.githubConfig
+    if (githubConfig) {
+      GithubStorage.manualSave(originData)
       return
     }
+    
+    // 回退到localStorage（向后兼容）
     localStorage.setItem(SIMPLE_MIND_MAP_DATA, JSON.stringify(originData))
   } catch (error) {
     console.log(error)

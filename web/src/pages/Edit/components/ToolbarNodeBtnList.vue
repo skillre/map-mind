@@ -1,26 +1,193 @@
 <template>
-  <div
-    class="toolbarNodeBtnList"
-    :class="[dir === 'h' ? 'toolbarNodeBtnListHorizon' : 'toolbarNodeBtnListVertical']"
-  >
-    <template v-for="item in showBtnList" :key="item.type">
-      <el-tooltip
-        v-if="dir === 'h'"
-        :content="item.name"
-        placement="bottom"
-        :open-delay="500"
-      >
-        <div class="toolbarBtn" @click="item.onClick">
-          <span class="icon iconfont" :class="item.icon"></span>
-        </div>
-      </el-tooltip>
+  <div class="toolbarNodeBtnList" :class="[dir, { isDark: isDark }]">
+    <template v-for="item in list">
       <div
-        v-else
-        class="toolbarNodeBtn"
-        @click="item.onClick"
+        v-if="item === 'back'"
+        class="toolbarBtn"
+        :class="{
+          disabled: readonly || backEnd
+        }"
+        @click="$bus.$emit('execCommand', 'BACK')"
       >
-        <span class="icon iconfont" :class="item.icon"></span>
-        <span class="text">{{ item.name }}</span>
+        <span class="icon iconfont iconhoutui-shi"></span>
+        <span class="text">{{ $t('toolbar.undo') }}</span>
+      </div>
+      <div
+        v-if="item === 'forward'"
+        class="toolbarBtn"
+        :class="{
+          disabled: readonly || forwardEnd
+        }"
+        @click="$bus.$emit('execCommand', 'FORWARD')"
+      >
+        <span class="icon iconfont iconqianjin1"></span>
+        <span class="text">{{ $t('toolbar.redo') }}</span>
+      </div>
+      <div
+        v-if="item === 'painter'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0 || hasGeneralization,
+          active: isInPainter
+        }"
+        @click="$bus.$emit('startPainter')"
+      >
+        <span class="icon iconfont iconjiedian"></span>
+        <span class="text">{{ $t('toolbar.painter') }}</span>
+      </div>
+      <div
+        v-if="item === 'siblingNode'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0 || hasRoot || hasGeneralization
+        }"
+        @click="$bus.$emit('execCommand', 'INSERT_NODE')"
+      >
+        <span class="icon iconfont iconjiedian"></span>
+        <span class="text">{{ $t('toolbar.insertSiblingNode') }}</span>
+      </div>
+      <div
+        v-if="item === 'childNode'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0 || hasGeneralization
+        }"
+        @click="$bus.$emit('execCommand', 'INSERT_CHILD_NODE')"
+      >
+        <span class="icon iconfont icontianjiazijiedian"></span>
+        <span class="text">{{ $t('toolbar.insertChildNode') }}</span>
+      </div>
+      <div
+        v-if="item === 'deleteNode'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0
+        }"
+        @click="$bus.$emit('execCommand', 'REMOVE_NODE')"
+      >
+        <span class="icon iconfont iconshanchu"></span>
+        <span class="text">{{ $t('toolbar.deleteNode') }}</span>
+      </div>
+      <div
+        v-if="item === 'image'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0
+        }"
+        @click="$bus.$emit('showNodeImage')"
+      >
+        <span class="icon iconfont iconimage"></span>
+        <span class="text">{{ $t('toolbar.image') }}</span>
+      </div>
+      <div
+        v-if="item === 'icon'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0
+        }"
+        @click="showNodeIcon"
+      >
+        <span class="icon iconfont iconxiaolian"></span>
+        <span class="text">{{ $t('toolbar.icon') }}</span>
+      </div>
+      <div
+        v-if="item === 'link'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0
+        }"
+        @click="$bus.$emit('showNodeLink')"
+      >
+        <span class="icon iconfont iconchaolianjie"></span>
+        <span class="text">{{ $t('toolbar.link') }}</span>
+      </div>
+      <div
+        v-if="item === 'note'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0
+        }"
+        @click="$bus.$emit('showNodeNote')"
+      >
+        <span class="icon iconfont iconflow-Mark"></span>
+        <span class="text">{{ $t('toolbar.note') }}</span>
+      </div>
+      <div
+        v-if="item === 'tag'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0
+        }"
+        @click="$bus.$emit('showNodeTag')"
+      >
+        <span class="icon iconfont iconbiaoqian"></span>
+        <span class="text">{{ $t('toolbar.tag') }}</span>
+      </div>
+      <div
+        v-if="item === 'summary'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0 || hasRoot || hasGeneralization
+        }"
+        @click="$bus.$emit('execCommand', 'ADD_GENERALIZATION')"
+      >
+        <span class="icon iconfont icongaikuozonglan"></span>
+        <span class="text">{{ $t('toolbar.summary') }}</span>
+      </div>
+      <div
+        v-if="item === 'associativeLine'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0 || hasGeneralization
+        }"
+        @click="$bus.$emit('createAssociativeLine')"
+      >
+        <span class="icon iconfont iconlianjiexian"></span>
+        <span class="text">{{ $t('toolbar.associativeLine') }}</span>
+      </div>
+      <div
+        v-if="item === 'formula'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0 || hasGeneralization
+        }"
+        @click="showFormula"
+      >
+        <span class="icon iconfont icongongshi"></span>
+        <span class="text">{{ $t('toolbar.formula') }}</span>
+      </div>
+      <div
+        v-if="item === 'attachment'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0 || hasGeneralization
+        }"
+        @click="selectAttachmentFile"
+      >
+        <span class="icon iconfont iconfujian"></span>
+        <span class="text">{{ $t('toolbar.attachment') }}</span>
+      </div>
+      <div
+        v-if="item === 'outerFrame'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0 || hasGeneralization
+        }"
+        @click="$bus.$emit('execCommand', 'ADD_OUTER_FRAME')"
+      >
+        <span class="icon iconfont iconwaikuang"></span>
+        <span class="text">{{ $t('toolbar.outerFrame') }}</span>
+      </div>
+      <div
+        v-if="item === 'ai'"
+        class="toolbarBtn"
+        :class="{
+          disabled: hasGeneralization
+        }"
+        @click="aiCrate"
+      >
+        <span class="icon iconfont iconAIshengcheng"></span>
+        <span class="text">{{ $t('toolbar.ai') }}</span>
       </div>
     </template>
   </div>
@@ -33,224 +200,49 @@ export default {
   props: {
     dir: {
       type: String,
-      default: 'h'
+      default: 'h' // h（水平排列）、v（垂直排列）
     },
     list: {
       type: Array,
-      default: () => []
+      default() {
+        return []
+      }
     }
   },
   data() {
     return {
-      // 定义按钮配置
-      btnList: [
-        {
-          type: 'back',
-          icon: 'iconundo',
-          name: this.$t('toolbar.undo'),
-          onClick: () => {
-            this.$bus.$emit('execCommand', 'BACK')
-          }
-        },
-        {
-          type: 'forward',
-          icon: 'iconredo',
-          name: this.$t('toolbar.redo'),
-          onClick: () => {
-            this.$bus.$emit('execCommand', 'FORWARD')
-          }
-        },
-        {
-          type: 'painter',
-          icon: 'iconbiancheng',
-          name: this.$t('toolbar.painter'),
-          onClick: () => {
-            this.$bus.$emit('execCommand', 'PAINTER')
-          }
-        },
-        {
-          type: 'siblingNode',
-          icon: 'icontongji',
-          name: this.$t('toolbar.insertSiblingNode'),
-          onClick: () => {
-            this.$bus.$emit('execCommand', 'INSERT_SIBLING_NODE')
-          }
-        },
-        {
-          type: 'childNode',
-          icon: 'iconjiedian',
-          name: this.$t('toolbar.insertChildNode'),
-          onClick: () => {
-            this.$bus.$emit('execCommand', 'INSERT_CHILD_NODE')
-          }
-        },
-        {
-          type: 'deleteNode',
-          icon: 'iconshanchu',
-          name: this.$t('toolbar.deleteNode'),
-          onClick: () => {
-            this.$bus.$emit('execCommand', 'REMOVE_NODE')
-          }
-        },
-        {
-          type: 'image',
-          icon: 'icontupian',
-          name: this.$t('toolbar.image'),
-          onClick: () => {
-            this.$store.commit('setActiveSidebar', 'nodeImage')
-          }
-        },
-        {
-          type: 'icon',
-          icon: 'iconfont icon',
-          name: this.$t('toolbar.icon'),
-          onClick: () => {
-            this.$store.commit('setActiveSidebar', 'nodeIcon')
-          }
-        },
-        {
-          type: 'link',
-          icon: 'iconchaolian',
-          name: this.$t('toolbar.link'),
-          onClick: () => {
-            this.$store.commit('setActiveSidebar', 'nodeHyperlink')
-          }
-        },
-        {
-          type: 'note',
-          icon: 'iconflowbranch',
-          name: this.$t('toolbar.note'),
-          onClick: () => {
-            this.$store.commit('setActiveSidebar', 'nodeNote')
-          }
-        },
-        {
-          type: 'tag',
-          icon: 'iconbiaoqian',
-          name: this.$t('toolbar.tag'),
-          onClick: () => {
-            this.$store.commit('setActiveSidebar', 'nodeTag')
-          }
-        },
-        {
-          type: 'summary',
-          icon: 'iconsummary',
-          name: this.$t('toolbar.summary'),
-          onClick: () => {
-            this.$bus.$emit('execCommand', 'INSERT_SUMMARY')
-          }
-        },
-        {
-          type: 'associativeLine',
-          icon: 'iconlianxian',
-          name: this.$t('toolbar.associativeLine'),
-          onClick: () => {
-            this.$bus.$emit('execCommand', 'INSERT_ASSOCIATIVE_LINE')
-          }
-        },
-        {
-          type: 'formula',
-          icon: 'iconfont icon-gongshi',
-          name: this.$t('toolbar.formula'),
-          onClick: () => {
-            this.$store.commit('setActiveSidebar', 'formula')
-          }
-        },
-        {
-          type: 'outerFrame',
-          icon: 'iconwaijian',
-          name: this.$t('toolbar.outerFrame'),
-          onClick: () => {
-            this.$bus.$emit('execCommand', 'INSERT_OUTER_FRAME')
-          }
-        },
-        {
-          type: 'annotation',
-          icon: 'iconzhushi',
-          name: '注释',
-          onClick: () => {
-            this.$bus.$emit('execCommand', 'INSERT_ANNOTATION')
-          }
-        },
-        {
-          type: 'ai',
-          icon: 'iconAI',
-          name: this.$t('toolbar.ai'),
-          onClick: () => {
-            this.$store.commit('setActiveSidebar', 'ai')
-          }
-        },
-        // GitHub相关按钮
-        {
-          type: 'githubConfig',
-          icon: 'icondakai',
-          name: 'GitHub配置',
-          onClick: () => {
-            this.$parent.initGitHub()
-          }
-        },
-        {
-          type: 'githubNew',
-          icon: 'iconxinjian',
-          name: this.$t('toolbar.newFile'),
-          onClick: () => {
-            this.$parent.createNewGitHubFile()
-          }
-        },
-        {
-          type: 'githubOpen',
-          icon: 'iconwenjian1',
-          name: this.$t('toolbar.openFile'),
-          onClick: () => {
-            this.$parent.openGitHubFile()
-          }
-        },
-        {
-          type: 'githubSave',
-          icon: 'iconlingcunwei',
-          name: '保存到GitHub',
-          onClick: () => {
-            this.$parent.saveToGitHubNow()
-          }
-        },
-        {
-          type: 'githubLogout',
-          icon: 'icongit-logout',
-          name: '登出GitHub',
-          onClick: () => {
-            this.$parent.logoutGitHub()
-          }
-        }
-      ]
+      activeNodes: [],
+      backEnd: true,
+      forwardEnd: true,
+      readonly: false,
+      isFullDataFile: false,
+      timer: null,
+      isInPainter: false
     }
   },
   computed: {
     ...mapState({
-      isDark: state => state.localConfig.isDark,
-      openNodeRichText: state => state.localConfig.openNodeRichText,
-      enableAi: state => state.localConfig.enableAi
+      isDark: state => state.localConfig.isDark
     }),
-    showBtnList() {
-      return this.btnList.filter(item => {
-        // 检查是否在传入的列表中
-        if (!this.list.includes(item.type)) return false
-        
-        // 特殊按钮的显示条件
-        if (item.type === 'formula' && !this.openNodeRichText) {
-          return false
-        }
-        
-        if (item.type === 'ai' && !this.enableAi) {
-          return false
-        }
-        
-        // GitHub按钮始终显示
-        if (['githubConfig', 'githubNew', 'githubOpen', 'githubSave', 'githubLogout'].includes(item.type)) {
-          return true
-        }
-        
-        return true
+    hasRoot() {
+      return (
+        this.activeNodes.findIndex(node => {
+          return node.isRoot
+        }) !== -1
+      )
+    },
+    hasGeneralization() {
+      return (
+        this.activeNodes.findIndex(node => {
+          return node.isGeneralization
+        }) !== -1
+      )
+    },
+    annotationRightHasBtn() {
+      const index = this.list.findIndex(item => {
+        return item === 'annotation'
       })
+      return index !== -1 && index < this.list.length - 1
     }
   },
   created() {
