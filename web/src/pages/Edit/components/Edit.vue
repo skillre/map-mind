@@ -72,7 +72,6 @@ import KeyboardNavigation from 'simple-mind-map/src/plugins/KeyboardNavigation.j
 import ExportPDF from 'simple-mind-map/src/plugins/ExportPDF.js'
 import ExportXMind from 'simple-mind-map/src/plugins/ExportXMind.js'
 import Export from 'simple-mind-map/src/plugins/Export.js'
-import GithubStorage from '@/utils/githubStorage'
 import Drag from 'simple-mind-map/src/plugins/Drag.js'
 import Select from 'simple-mind-map/src/plugins/Select.js'
 import RichText from 'simple-mind-map/src/plugins/RichText.js'
@@ -243,6 +242,7 @@ export default {
     this.$bus.$on('node_tree_render_end', this.handleHideLoading)
     this.$bus.$on('showLoading', this.handleShowLoading)
     this.$bus.$on('localStorageExceeded', this.onLocalStorageExceeded)
+    this.$bus.$on('reload_data', this.reloadData)
     window.addEventListener('resize', this.handleResize)
     this.$bus.$on('showDownloadTip', this.showDownloadTip)
     this.webTip()
@@ -259,6 +259,7 @@ export default {
     this.$bus.$off('node_tree_render_end', this.handleHideLoading)
     this.$bus.$off('showLoading', this.handleShowLoading)
     this.$bus.$off('localStorageExceeded', this.onLocalStorageExceeded)
+    this.$bus.$off('reload_data', this.reloadData)
     window.removeEventListener('resize', this.handleResize)
     this.$bus.$off('showDownloadTip', this.showDownloadTip)
     this.mindMap.destroy()
@@ -311,6 +312,30 @@ export default {
     getData() {
       this.mindMapData = getData()
       this.mindMapConfig = getConfig() || {}
+    },
+
+    // 重新加载数据
+    async reloadData() {
+      showLoading()
+      try {
+        // 销毁当前实例
+        if (this.mindMap) {
+          this.mindMap.destroy()
+          this.mindMap = null
+        }
+        
+        // 重新获取数据
+        this.getData()
+        
+        // 重新初始化
+        this.init()
+        
+        // 重新绑定保存事件
+        this.bindSaveEvent()
+      } catch (error) {
+        console.error('重新加载数据失败:', error)
+        this.$message.error(`重新加载数据失败: ${error.message || '未知错误'}`)
+      }
     },
 
     // 存储数据当数据有变时

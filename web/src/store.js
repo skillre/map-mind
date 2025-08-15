@@ -7,6 +7,17 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
   state: {
     isHandleLocalFile: false, // 是否操作的是本地文件
+    isHandleGitHubFile: false, // 是否操作的是GitHub文件
+    githubCurrentFile: 'mindmap.smm', // 当前操作的GitHub文件名
+    githubConfig: {
+      // GitHub配置
+      token: '', // GitHub访问令牌
+      owner: '', // 仓库所有者
+      repo: '', // 仓库名称
+      branch: 'main', // 分支名称
+      autoSave: true, // 是否自动保存
+      autoSaveInterval: 60 // 自动保存间隔（秒）
+    },
     localConfig: {
       // 本地配置
       isZenMode: false, // 是否是禅模式
@@ -21,8 +32,6 @@ const store = new Vuex.Store({
       // 是否开启AI功能
       enableAi: true
     },
-    githubConfig: null, // GitHub配置
-    githubFileSha: null, // GitHub文件的SHA值
     activeSidebar: '', // 当前显示的侧边栏
     isOutlineEdit: false, // 是否是大纲编辑模式
     isReadonly: false, // 是否只读
@@ -45,6 +54,34 @@ const store = new Vuex.Store({
     // 设置操作本地文件标志位
     setIsHandleLocalFile(state, data) {
       state.isHandleLocalFile = data
+      // 如果启用本地文件，则禁用GitHub文件
+      if (data) {
+        state.isHandleGitHubFile = false
+      }
+    },
+
+    // 设置操作GitHub文件标志位
+    setIsHandleGitHubFile(state, data) {
+      state.isHandleGitHubFile = data
+      // 如果启用GitHub文件，则禁用本地文件
+      if (data) {
+        state.isHandleLocalFile = false
+      }
+    },
+
+    // 设置GitHub配置
+    setGitHubConfig(state, data) {
+      state.githubConfig = {
+        ...state.githubConfig,
+        ...data
+      }
+      // 存储到本地存储
+      localStorage.setItem('SIMPLE_MIND_MAP_GITHUB_CONFIG', JSON.stringify(state.githubConfig))
+    },
+
+    // 设置当前GitHub文件名
+    setGitHubCurrentFile(state, filename) {
+      state.githubCurrentFile = filename
     },
 
     // 设置本地配置
@@ -61,17 +98,6 @@ const store = new Vuex.Store({
         ...state.localConfig,
         ...state.aiConfig
       })
-    },
-
-    // 设置GitHub配置
-    setGithubConfig(state, data) {
-      state.githubConfig = data
-      localStorage.setItem('GITHUB_CONFIG', JSON.stringify(data))
-    },
-    
-    // 设置GitHub文件SHA
-    setGithubFileSha(state, data) {
-      state.githubFileSha = data
     },
 
     // 设置当前显示的侧边栏
@@ -113,17 +139,8 @@ const store = new Vuex.Store({
     setBgList(state, data) {
       state.bgList = data
     }
-  }
+  },
+  actions: {}
 })
-
-// 初始化时从localStorage恢复GitHub配置
-const githubConfig = localStorage.getItem('GITHUB_CONFIG')
-if (githubConfig) {
-  try {
-    store.commit('setGithubConfig', JSON.parse(githubConfig))
-  } catch (e) {
-    console.error('Failed to parse GitHub config:', e)
-  }
-}
 
 export default store

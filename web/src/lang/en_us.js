@@ -312,78 +312,236 @@ export default {
   toolbar: {
     undo: 'Undo',
     redo: 'Redo',
-    painter: 'Painter',
-    topic: 'Topic',
-    subTopic: 'Sub Topic',
-    siblingNode: 'Sibling Node',
-    childNode: 'Child Node',
-    deleteNode: 'Delete Node',
+    insertSiblingNode: 'Sibling node',
+    insertChildNode: 'Child node',
+    deleteNode: 'Delete node',
     image: 'Image',
     icon: 'Icon',
     link: 'Link',
     note: 'Note',
     tag: 'Tag',
     summary: 'Summary',
-    associativeLine: 'Associative Line',
-    formula: 'Formula',
-    outerFrame: 'Outer Frame',
-    annotation: 'Annotation',
-    ai: 'AI',
-    more: 'More',
-    directory: 'Directory',
-    newFile: 'New',
-    newFileTip: 'New File',
-    openFile: 'Open',
-    openFileTip: 'Open File',
-    saveAs: 'Save As',
+    displayOutline: 'Display outline',
+    baseStyle: 'Base style',
+    theme: 'Theme',
+    strusture: 'Strusture',
+    newFile: 'New file',
+    openFile: 'Open file',
+    saveAs: 'Save as',
     import: 'Import',
-    export: 'Export'
+    export: 'Export',
+    shortcutKey: 'Shortcut key',
+    associativeLine: 'Associative line',
+    painter: 'Painter',
+    formula: 'Formula',
+    attachment: 'Attachment',
+    outerFrame: 'Outer frame',
+    more: 'More',
+    selectFileTip: 'Please select a file',
+    notSupportTip:
+      'Your browser does not support this feature, or the current page is not using the HTTPS protocol',
+    tip: 'Tip',
+    editingLocalFileTipFront: 'Currently editing your local【',
+    editingLocalFileTipEnd: '】file',
+    fileContentError: 'File content error',
+    fileOpenFailed: 'File open failed',
+    defaultFileName: 'Mind map',
+    creatingTip: 'Creating file',
+    directory: 'Directory',
+    newFileTip:
+      'Please export the currently edited file before creating a new one, Beware of content loss',
+    openFileTip:
+      'Please export the currently edited file before opening it, Beware of content loss',
+    ai: 'AI'
   },
-  
-  github: {
-    configTitle: 'GitHub Configuration',
-    token: 'Access Token',
-    tokenPlaceholder: 'Please enter GitHub personal access token',
-    tokenTip: 'Requires repo permissions to access private repositories',
-    owner: 'Repository Owner',
-    ownerPlaceholder: 'Please enter repository owner username',
-    repo: 'Repository Name',
-    repoPlaceholder: 'Please enter repository name',
-    branch: 'Branch',
-    branchPlaceholder: 'Please enter branch name',
-    path: 'File Path',
-    pathPlaceholder: 'Please enter file storage path, e.g. mind-map.json',
-    autoSave: 'Auto Save',
-    autoSaveTip: 'When enabled, files will be automatically saved to GitHub periodically',
-    autoSaveInterval: 'Auto Save Interval',
-    seconds: 'seconds',
+  edit: {
+    newFeatureNoticeTitle: 'New feature reminder',
+    newFeatureNoticeMessage:
+      'This update supports node rich text editing, But there are some defects, The most important impact is that the time to export the image is proportional to the number of nodes, Therefore, if you are more dependent on export requirements, you can use【Base style】-【Other config】-【Enable node rich text editing】Set to turn off rich text editing mode.',
+    root: 'Root node',
+    splitByWrap: 'Is automatically split nodes based on line breaks?',
+    tip: 'Tip',
+    yes: 'Yes',
+    no: 'No',
+    exportError: 'Export failed',
+    dragTip: 'Release here to import the file',
+    deleteNodeImgTip: 'Are you sure to delete the node image?',
+    autoOpenNodeRichTextTip:
+      'Detected imported rich text content, automatically enabled rich text mode',
+    localStorageExceededTip:
+      'The volume of the mind map you created has exceeded the maximum storage limit allowed by the browser. Please export it immediately, otherwise the data will be lost! It is recommended to download the client for use, as there is no size limit for the client.',
+    withBg: 'With background image',
+    tryTipTitle: 'Function trial prompt',
+    tryTipDesc:
+      'This feature is a trial feature in the web version. Please download the client to use it:',
+    downBaidu: 'Go to Baidu Netdisk to download',
+    downGithub: 'Download from Github'
+  },
+  mouseAction: {
+    tip1:
+      'Current: Left click to drag the canvas, right click to box select nodes',
+    tip2:
+      'Current: Left click to box select nodes, right click to drag the canvas'
+  },
+  search: {
+    searchPlaceholder: 'Enter the search content and press Enter',
+    replacePlaceholder: 'Please enter replacement content',
+    replace: 'Replace',
+    replaceAll: 'Replace all',
     cancel: 'Cancel',
-    save: 'Save',
-    configSaved: 'GitHub configuration saved'
+    noResult: 'No result'
   },
-  
+  nodeIconSidebar: {
+    title: 'Icon/Sticker',
+    icon: 'Icon',
+    sticker: 'Sticker'
+  },
+  formulaSidebar: {
+    title: 'Formula',
+    placeholder: 'Please enter LaTeX syntax',
+    confirm: 'Confirm',
+    common: 'Common formulas',
+    tip: 'Inserting formulas is not supported in non rich text mode'
+  },
+  richTextToolbar: {
+    bold: 'Bold',
+    italic: 'Italic',
+    underline: 'Underline',
+    strike: 'Strike',
+    fontFamily: 'Font family',
+    fontSize: 'Font size',
+    color: 'Color',
+    backgroundColor: 'Background color',
+    removeFormat: 'Clear Style',
+    textAlign: 'Text align'
+  },
   other: {
-    loading: 'Loading...',
-    saveSuccess: 'Save Success',
-    saveFailed: 'Save Failed',
-    saveTip: 'The file has been saved to the browser\'s local storage. If you want to save it for a long time, please export it as a file',
-    exportTip: 'The current browser does not support the export function. It is recommended to use Chrome browser',
-    fullscreenTip: 'The current browser does not support the full screen function. It is recommended to use Chrome browser',
-    fullscreenZoomTip: 'Cannot zoom in full screen mode, please exit full screen mode first',
-    fullscreenToolbarTip: 'Cannot operate the toolbar in full screen mode, please exit full screen mode first',
-    fullscreenSidebarTip: 'Cannot operate the sidebar in full screen mode, please exit full screen mode first',
-    fullscreenMindMapTip: 'Cannot operate the mind map in full screen mode, please exit full screen mode first',
-    fullscreenNodeTip: 'Cannot operate the node in full screen mode, please exit full screen mode first',
-    fullscreenNodeImageTip: 'Cannot operate the node image in full screen mode, please exit full screen mode first',
-    fullscreenNodeIconTip: 'Cannot operate the node icon in full screen mode, please exit full screen mode first',
-    fullscreenNodeLinkTip: 'Cannot operate the node link in full screen mode, please exit full screen mode first',
-    fullscreenNodeNoteTip: 'Cannot operate the node note in full screen mode, please exit full screen mode first',
-    fullscreenNodeTagTip: 'Cannot operate the node tag in full screen mode, please exit full screen mode first',
-    fullscreenNodeSummaryTip: 'Cannot operate the node summary in full screen mode, please exit full screen mode first',
-    fullscreenNodeAssociativeLineTip: 'Cannot operate the node associative line in full screen mode, please exit full screen mode first',
-    fullscreenNodeFormulaTip: 'Cannot operate the node mathematical formula in full screen mode, please exit full screen mode first',
-    fullscreenNodeOuterFrameTip: 'Cannot operate the node outer frame in full screen mode, please exit full screen mode first',
-    fullscreenNodeAnnotationTip: 'Cannot operate the node annotation in full screen mode, please exit full screen mode first',
-    fullscreenNodeAiTip: 'Cannot operate the AI function in full screen mode, please exit full screen mode first'
+    loading: 'Loading, please wait...'
+  },
+  sourceCodeEdit: {
+    sourceCodeTip:
+      'It is not recommended to modify the style in rich text mode because it requires synchronous modification of data and HTML structure.',
+    format: 'Format',
+    copy: 'Copy',
+    confirm: 'Complete',
+    close: 'Close',
+    formatErrorTip: 'The JSON format is incorrect. Please check and try again',
+    copyTip: 'Copied to clipboard',
+    formatTip: 'Format complete'
+  },
+  attachment: {
+    deleteAttachment: 'Delete attachment',
+    tip: 'The attachment function is only available on the client side'
+  },
+  annotation: {
+    mark: 'Mark',
+    show: 'Show mark',
+    type: 'Type',
+    color: 'Color',
+    lineWidth: 'Line width',
+    padding: 'Padding',
+    animate: 'Animate'
+  },
+  nodeOuterFrame: {
+    outerFrameSetting: 'Outer frame setting',
+    deleteOuterFrame: 'Delete outer frame',
+    boxStyle: 'Box style',
+    boxColor: 'Box color',
+    fillColor: 'Fill color',
+    nodeOuterFrameStyle: 'Outer frame style',
+    outerFrameText: 'Outer frame text',
+    deleteOuterFrameText: 'Delete outer frame text',
+    fontFamily: 'Font family',
+    color: 'Color',
+    fontSize: 'font size',
+    radius: 'Radius',
+    fontBold: 'Font bold',
+    italic: 'Italic',
+    lineHeight: 'Line height',
+    textFillRadius: 'Text fill radius',
+    textFill: 'Text fill color',
+    textAlign: 'Text align',
+    left: 'Left',
+    center: 'Center',
+    right: 'Right',
+    paddingX: 'Padding x',
+    paddingY: 'Padding y'
+  },
+  nodeTagStyle: {
+    placeholder: 'Please enter the tag content',
+    delete: 'Delete this tag'
+  },
+  ai: {
+    chatTitle: 'AI dialogue',
+    clearRecords: 'Clear records',
+    connectFailedTitle: 'Client connection failure prompt',
+    connectFailedTip: 'Client connection failed, please check:',
+    connectFailedCheckTip1:
+      '1. Have you installed the mind mapping client? If not, please click here to install:',
+    connectFailedCheckTip2:
+      '2. If the client is installed, please confirm if the client is opened.',
+    connectFailedCheckTip3:
+      'If it has already been installed and started, you can try closing and restarting it.',
+    connectFailedCheckTip4:
+      'After completing the above steps, you can click on:',
+    baiduNetdisk: 'Baidu Netdisk',
+    createMindMapTitle: 'One click generation of mind maps',
+    createTip:
+      'Please enter a theme, and AI will generate a mind map based on your theme, such as: Hangzhou weekend travel plan.',
+    importantTip:
+      'Important note: One click generation will overwrite existing data. It is recommended to export the current data first.',
+    wantModifyAiConfigTip:
+      'Do you want to modify the AI configuration? Please click on:',
+    modifyAIConfiguration: 'Modify AI configuration',
+    chatInputPlaceholder: 'Enter to send, Shift+Enter to wrap.',
+    send: 'Send',
+    stopGenerating: 'Stop generating',
+    generationFailed: 'Generation failed',
+    aiGenerationSuccess: 'AI generation completed',
+    stoppedGenerating: 'Stopped generating',
+    AIConfiguration: 'AI configuration',
+    VolcanoArkLargeModelConfiguration: 'Volcano Ark Large Model Configuration:',
+    configTip:
+      'At present, only the Volcano Ark model is supported, and you need to obtain the key yourself. For detailed operation steps, please refer to:',
+    course: 'Course',
+    inferenceAccessPoint: 'Inference access point',
+    mindMappingClientConfiguration: 'Mind mapping client configuration:',
+    port: 'Port',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    close: 'Close',
+    configSaveSuccessTip: 'Configuration saved successfully',
+    apiValidateTip: 'Please enter the interface',
+    keyValidateTip: 'Please enter the API Key',
+    modelValidateTip: 'Please enter the inference access point',
+    portValidateTip: 'Please enter the port',
+    methodValidateTip: 'Please select the request method',
+    noInputTip: 'Please enter the content',
+    connectSuccessful: 'Connection successful',
+    connectFailed: 'connection failed',
+    connectionDetection: 'Connection detection',
+    configurationMissing: 'Configuration missing',
+    aiCreateMsgPrefix: 'Help me write one【',
+    aiCreateMsgPostfix:
+      '】. It needs to be returned in Markdown format and can only use two syntax: Markdown title and unordered list. It can support multiple layers of nesting. Just return the content.',
+    aiCreatePartMsgPrefix: 'I have a theme for【',
+    aiCreatePartMsgCenter:
+      '】Can you help me continue writing one of the contents of the mind map【',
+    aiCreatePartMsgPostfix: '】The subordinate content of the node',
+    aiCreatePartMsgHelp:
+      '. Needs to be returned in Markdown format and can only use two syntax: Markdown title and unordered list. It can support multi-level nesting. Just return the content.',
+    aiCreatePart: 'AI Continuation'
+  },
+  note: {
+    title: 'Note'
+  },
+  nodeLink: {
+    linkToNode: 'Link to node',
+    addReturn: 'Weather to add a backlink',
+    tip1: 'Please select the node to link to',
+    tip2: 'Cannot link to oneself',
+    tip3: 'Link successful',
+    tip4: 'Delete successful',
+    tip5: 'The link node does not exist. Weather to delete the link?'
   }
 }
