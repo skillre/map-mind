@@ -1,13 +1,16 @@
-# 构建阶段
-FROM node:16-alpine AS builder
+# 构建阶段 - 使用国内镜像源
+FROM registry.npmmirror.com/node:16-alpine AS builder
 
 WORKDIR /app
+
+# 设置npm镜像源以加速依赖安装
+RUN npm config set registry https://registry.npmmirror.com
 
 # 复制项目文件
 COPY web/package*.json ./
 
-# 安装依赖
-RUN npm ci --quiet
+# 安装依赖，使用npm install替代npm ci以提高兼容性
+RUN npm install --quiet
 
 # 复制源代码
 COPY web/ ./
@@ -15,8 +18,8 @@ COPY web/ ./
 # 构建应用
 RUN npm run build
 
-# 部署阶段
-FROM nginx:alpine
+# 部署阶段 - 使用国内镜像源
+FROM registry.npmmirror.com/nginx:alpine
 
 # 设置工作目录
 WORKDIR /app

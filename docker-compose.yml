@@ -1,10 +1,17 @@
-version: '3.8'
-
+# 移除version字段，因为它在最新版本的Docker Compose中已过时
 services:
   mind-map:
     build:
       context: .
       dockerfile: Dockerfile
+      # 添加构建参数以加速构建过程
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+      # 使用BuildKit加速构建
+      x-bake:
+        platforms: ["linux/amd64"]
+        cache-from:
+          - type=registry,ref=mind-map:cache
     container_name: mind-map
     restart: unless-stopped
     ports:
