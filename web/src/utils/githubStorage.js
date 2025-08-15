@@ -19,6 +19,14 @@ class GithubStorage {
       }
     }
     
+    // 监听配置变化并重新启动自动保存
+    store.watch(
+      (state) => state.githubConfig,
+      (newConfig) => {
+        this.startAutoSave()
+      }
+    )
+    
     // 启动自动保存
     this.startAutoSave()
   }
@@ -28,12 +36,14 @@ class GithubStorage {
     // 清除现有的定时器
     if (this.autoSaveTimer) {
       clearInterval(this.autoSaveTimer)
+      this.autoSaveTimer = null
     }
     
     const githubConfig = store.state.githubConfig
     if (githubConfig && githubConfig.autoSave) {
       this.autoSaveTimer = setInterval(() => {
-        this.save()
+        // 触发保存事件，由主程序监听并处理实际保存逻辑
+        window.dispatchEvent(new CustomEvent('github-auto-save'))
       }, githubConfig.autoSaveInterval * 1000)
     }
   }
@@ -59,28 +69,22 @@ class GithubStorage {
   }
   
   // 保存文件
-  async save(data = null) {
+  async save(data) {
     // 防止并发保存
     if (this.isSaving) {
+      console.log('Save operation is in progress, skipping...')
       return
     }
     
     const githubConfig = store.state.githubConfig
     if (!githubConfig) {
+      console.log('GitHub configuration not found, skipping save...')
       return
     }
     
     this.isSaving = true
     
     try {
-      // 如果没有提供数据，则从store中获取当前数据
-      if (!data) {
-        // 这里需要获取当前思维导图的数据
-        // 由于涉及复杂的数据获取逻辑，暂时留空
-        // 在实际应用中，应该从Vue原型或mind map实例中获取数据
-        return
-      }
-      
       const content = JSON.stringify(data, null, 2)
       const sha = store.state.githubFileSha
       const message = `Update mind map ${new Date().toLocaleString()}`
@@ -89,6 +93,7 @@ class GithubStorage {
       store.commit('setGithubFileSha', newSha)
       
       console.log('Successfully saved to GitHub')
+      return true
     } catch (error) {
       console.error('Failed to save to GitHub:', error)
       throw error

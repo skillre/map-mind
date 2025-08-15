@@ -113,8 +113,17 @@ const store = new Vuex.Store({
     setBgList(state, data) {
       state.bgList = data
     }
-  },
-  actions: {}
+  }
 })
+
+// 初始化时从localStorage恢复GitHub配置
+const githubConfig = localStorage.getItem('GITHUB_CONFIG')
+if (githubConfig) {
+  try {
+    store.commit('setGithubConfig', JSON.parse(githubConfig))
+  } catch (e) {
+    console.error('Failed to parse GitHub config:', e)
+  }
+}
 
 export default store

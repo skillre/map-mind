@@ -35,36 +35,6 @@
       
       <!-- 导出 -->
       <div class="toolbarBlock">
-        <div class="toolbarBtn" @click="openDirectory" v-if="!isMobile">
-          <span class="icon iconfont icondakai"></span>
-          <span class="text">{{ $t('toolbar.directory') }}</span>
-        </div>
-        <el-tooltip
-          effect="dark"
-          :content="$t('toolbar.newFileTip')"
-          placement="bottom"
-          v-if="!isMobile"
-        >
-          <div class="toolbarBtn" @click="createNewLocalFile">
-            <span class="icon iconfont iconxinjian"></span>
-            <span class="text">{{ $t('toolbar.newFile') }}</span>
-          </div>
-        </el-tooltip>
-        <el-tooltip
-          effect="dark"
-          :content="$t('toolbar.openFileTip')"
-          placement="bottom"
-          v-if="!isMobile"
-        >
-          <div class="toolbarBtn" @click="openLocalFile">
-            <span class="icon iconfont iconwenjian1"></span>
-            <span class="text">{{ $t('toolbar.openFile') }}</span>
-          </div>
-        </el-tooltip>
-        <div class="toolbarBtn" @click="saveLocalFile" v-if="!isMobile">
-          <span class="icon iconfont iconlingcunwei"></span>
-          <span class="text">{{ $t('toolbar.saveAs') }}</span>
-        </div>
         <div class="toolbarBtn" @click="$bus.$emit('showImport')">
           <span class="icon iconfont icondaoru"></span>
           <span class="text">{{ $t('toolbar.import') }}</span>
@@ -76,68 +46,6 @@
         >
           <span class="icon iconfont iconexport"></span>
           <span class="text">{{ $t('toolbar.export') }}</span>
-        </div>
-        <!-- 本地文件树 -->
-        <div
-          class="fileTreeBox"
-          v-if="fileTreeVisible"
-          :class="{ expand: fileTreeExpand }"
-        >
-          <div class="fileTreeToolbar">
-            <div class="fileTreeName">
-              {{ rootDirName ? '/' + rootDirName : '' }}
-            </div>
-            <div class="fileTreeActionList">
-              <div
-                class="btn"
-                :class="[
-                  fileTreeExpand ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
-                ]"
-                @click="fileTreeExpand = !fileTreeExpand"
-              ></div>
-              <div
-                class="btn el-icon-close"
-                @click="fileTreeVisible = false"
-              ></div>
-            </div>
-          </div>
-          <div class="fileTreeWrap">
-            <el-tree
-              :props="fileTreeProps"
-              :load="loadFileTreeNode"
-              :expand-on-click-node="false"
-              node-key="id"
-              lazy
-            >
-              <span class="customTreeNode" slot-scope="{ node, data }">
-                <div class="treeNodeInfo">
-                  <span
-                    class="treeNodeIcon iconfont"
-                    :class="[
-                      data.type === 'file' ? 'iconwenjian' : 'icondakai'
-                    ]"
-                  ></span>
-                  <span class="treeNodeName">{{ node.label }}</span>
-                </div>
-                <div class="treeNodeBtnList" v-if="data.type === 'file'">
-                  <el-button
-                    type="text"
-                    size="mini"
-                    v-if="data.enableEdit"
-                    @click="editLocalFile(data)"
-                    >编辑</el-button
-                  >
-                  <el-button
-                    type="text"
-                    size="mini"
-                    v-else
-                    @click="importLocalFile(data)"
-                    >导入</el-button
-                  >
-                </div>
-              </span>
-            </el-tree>
-          </div>
         </div>
       </div>
     </div>
@@ -169,7 +77,6 @@ import ToolbarNodeBtnList from './ToolbarNodeBtnList.vue'
 import { throttle, isMobile } from 'simple-mind-map/src/utils/index'
 
 // 工具栏
-let fileHandle = null
 const defaultBtnList = [
   'back',
   'forward',
@@ -209,343 +116,50 @@ export default {
       horizontalList: [],
       verticalList: [],
       showMoreBtn: true,
-      popoverShow: false,
-      fileTreeProps: {
-        label: 'name',
-        children: 'children',
-        isLeaf: 'leaf'
-      },
-      fileTreeVisible: false,
-      rootDirName: '',
-      fileTreeExpand: true,
-      waitingWriteToLocalFile: false
+      popoverShow: false
     }
   },
   computed: {
-    ...mapState({
-      isDark: state => state.localConfig.isDark,
-      isHandleLocalFile: state => state.isHandleLocalFile,
-      openNodeRichText: state => state.localConfig.openNodeRichText,
-      enableAi: state => state.localConfig.enableAi
-    }),
-
-    btnLit() {
-      let res = [...defaultBtnList]
-      if (!this.openNodeRichText) {
-        res = res.filter(item => {
-          return item !== 'formula'
-        })
-      }
-      if (!this.enableAi) {
-        res = res.filter(item => {
-          return item !== 'ai'
-        })
-      }
-      return res
-    }
+    ...mapState(['isDark'])
   },
   watch: {
-    isHandleLocalFile(val) {
-      if (!val) {
-        Notification.closeAll()
-      }
-    },
-    btnLit: {
-      deep: true,
-      handler() {
-        this.computeToolbarShow()
-      }
+    isDark() {
+      this.$nextTick(() => {
+        this.computeBtnList()
+      })
     }
   },
-  created() {
-    this.$bus.$on('write_local_file', this.onWriteLocalFile)
-  },
   mounted() {
-    this.computeToolbarShow()
-    this.computeToolbarShowThrottle = throttle(this.computeToolbarShow, 300)
-    window.addEventListener('resize', this.computeToolbarShowThrottle)
-    this.$bus.$on('lang_change', this.computeToolbarShowThrottle)
-    window.addEventListener('beforeunload', this.onUnload)
-    this.$bus.$on('node_note_dblclick', this.onNodeNoteDblclick)
+    this.$nextTick(() => {
+      this.computeBtnList()
+      window.addEventListener('resize', this.onResize)
+    })
   },
-  beforeDestroy() {
-    this.$bus.$off('write_local_file', this.onWriteLocalFile)
-    window.removeEventListener('resize', this.computeToolbarShowThrottle)
-    this.$bus.$off('lang_change', this.computeToolbarShowThrottle)
-    window.removeEventListener('beforeunload', this.onUnload)
-    this.$bus.$off('node_note_dblclick', this.onNodeNoteDblclick)
+  destroyed() {
+    window.removeEventListener('resize', this.onResize)
   },
   methods: {
-    // 计算工具按钮如何显示
-    computeToolbarShow() {
-      if (!this.$refs.toolbarRef) return
-      const windowWidth = window.innerWidth - 40
-      const all = [...this.btnLit]
-      let index = 1
-      const loopCheck = () => {
-        if (index > all.length) return done()
-        this.horizontalList = all.slice(0, index)
-        this.$nextTick(() => {
-          const width = this.$refs.toolbarRef.getBoundingClientRect().width
-          if (width < windowWidth) {
-            index++
-            loopCheck()
-          } else if (index > 0 && width > windowWidth) {
-            index--
-            this.horizontalList = all.slice(0, index)
-            done()
-          }
-        })
+    // 计算工具栏按钮列表
+    computeBtnList() {
+      let list = [...defaultBtnList]
+      let horizontalNum = Math.floor(
+        (this.$refs.toolbarRef.clientWidth - 300) / 80
+      )
+      if (horizontalNum <= 0) {
+        horizontalNum = 1
       }
-      const done = () => {
-        this.verticalList = all.slice(index)
-        this.showMoreBtn = this.verticalList.length > 0
-      }
-      loopCheck()
+      this.horizontalList = list.slice(0, horizontalNum)
+      this.verticalList = list.slice(horizontalNum)
+      this.showMoreBtn = this.verticalList.length > 0
     },
 
+    onResize: throttle(function () {
+      this.computeBtnList()
+    }, 300),
+    
     // 打开GitHub配置
     openGithubConfig() {
       this.$bus.$emit('openGithubConfig')
-    },
-
-    // 监听本地文件读写
-    onWriteLocalFile(content) {
-      clearTimeout(this.timer)
-      if (fileHandle && this.isHandleLocalFile) {
-        this.waitingWriteToLocalFile = true
-      }
-      this.timer = setTimeout(() => {
-        this.writeLocalFile(content)
-      }, 1000)
-    },
-
-    onUnload(e) {
-      if (this.waitingWriteToLocalFile) {
-        const msg = '存在未保存的数据'
-        e.returnValue = msg
-        return msg
-      }
-    },
-
-    // 加载本地文件树
-    async loadFileTreeNode(node, resolve) {
-      try {
-        let dirHandle
-        if (node.level === 0) {
-          dirHandle = await window.showDirectoryPicker()
-          this.rootDirName = dirHandle.name
-        } else {
-          dirHandle = node.data.handle
-        }
-        const dirList = []
-        const fileList = []
-        for await (const [key, value] of dirHandle.entries()) {
-          const isFile = value.kind === 'file'
-          if (isFile && !/\.(smm|xmind|md|json)$/.test(value.name)) {
-            continue
-          }
-          const enableEdit = isFile && /\.smm$/.test(value.name)
-          const data = {
-            id: key,
-            name: value.name,
-            type: value.kind,
-            handle: value,
-            leaf: isFile,
-            enableEdit
-          }
-          if (isFile) {
-            fileList.push(data)
-          } else {
-            dirList.push(data)
-          }
-        }
-        resolve([...dirList, ...fileList])
-      } catch (error) {
-        console.log(error)
-        this.fileTreeVisible = false
-        resolve([])
-        if (error.toString().includes('aborted')) {
-          return
-        }
-        this.$message.warning(this.$t('toolbar.notSupportTip'))
-      }
-    },
-
-    // 扫描本地文件夹
-    openDirectory() {
-      this.fileTreeVisible = false
-      this.fileTreeExpand = true
-      this.rootDirName = ''
-      this.$nextTick(() => {
-        this.fileTreeVisible = true
-      })
-    },
-
-    // 编辑指定文件
-    editLocalFile(data) {
-      if (data.handle) {
-        fileHandle = data.handle
-        this.readFile()
-      }
-    },
-
-    // 导入指定文件
-    async importLocalFile(data) {
-      try {
-        const file = await data.handle.getFile()
-        this.$refs.ImportRef.onChange({
-          raw: file,
-          name: file.name
-        })
-        this.$refs.ImportRef.confirm()
-      } catch (error) {
-        console.log(error)
-      }
-    },
-
-    // 打开本地文件
-    async openLocalFile() {
-      try {
-        let [_fileHandle] = await window.showOpenFilePicker({
-          types: [
-            {
-              description: '',
-              accept: {
-                'application/json': ['.smm']
-              }
-            }
-          ],
-          excludeAcceptAllOption: true,
-          multiple: false
-        })
-        if (!_fileHandle) {
-          return
-        }
-        fileHandle = _fileHandle
-        if (fileHandle.kind === 'directory') {
-          this.$message.warning(this.$t('toolbar.selectFileTip'))
-          return
-        }
-        this.readFile()
-      } catch (error) {
-        console.log(error)
-        if (error.toString().includes('aborted')) {
-          return
-        }
-        this.$message.warning(this.$t('toolbar.notSupportTip'))
-      }
-    },
-
-    // 读取本地文件
-    async readFile() {
-      let file = await fileHandle.getFile()
-      let fileReader = new FileReader()
-      fileReader.onload = async () => {
-        this.$store.commit('setIsHandleLocalFile', true)
-        this.setData(fileReader.result)
-        Notification.closeAll()
-        Notification({
-          title: this.$t('toolbar.tip'),
-          message: `${this.$t('toolbar.editingLocalFileTipFront')}${
-            file.name
-          }${this.$t('toolbar.editingLocalFileTipEnd')}`,
-          duration: 0,
-          showClose: true
-        })
-      }
-      fileReader.readAsText(file)
-    },
-
-    // 渲染读取的数据
-    setData(str) {
-      try {
-        let data = JSON.parse(str)
-        if (typeof data !== 'object') {
-          throw new Error(this.$t('toolbar.fileContentError'))
-        }
-        if (data.root) {
-          this.isFullDataFile = true
-        } else {
-          this.isFullDataFile = false
-          data = {
-            ...exampleData,
-            root: data
-          }
-        }
-        this.$bus.$emit('setData', data)
-      } catch (error) {
-        console.log(error)
-        this.$message.error(this.$t('toolbar.fileOpenFailed'))
-      }
-    },
-
-    // 写入本地文件
-    async writeLocalFile(content) {
-      if (!fileHandle || !this.isHandleLocalFile) {
-        this.waitingWriteToLocalFile = false
-        return
-      }
-      if (!this.isFullDataFile) {
-        content = content.root
-      }
-      let string = JSON.stringify(content)
-      const writable = await fileHandle.createWritable()
-      await writable.write(string)
-      await writable.close()
-      this.waitingWriteToLocalFile = false
-    },
-
-    // 创建本地文件
-    async createNewLocalFile() {
-      await this.createLocalFile(exampleData)
-    },
-
-    // 另存为
-    async saveLocalFile() {
-      let data = getData()
-      await this.createLocalFile(data)
-    },
-
-    // 创建本地文件
-    async createLocalFile(content) {
-      try {
-        let _fileHandle = await window.showSaveFilePicker({
-          types: [
-            {
-              description: '',
-              accept: { 'application/json': ['.smm'] }
-            }
-          ],
-          suggestedName: this.$t('toolbar.defaultFileName')
-        })
-        if (!_fileHandle) {
-          return
-        }
-        const loading = this.$loading({
-          lock: true,
-          text: this.$t('toolbar.creatingTip'),
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
-        })
-        fileHandle = _fileHandle
-        this.$store.commit('setIsHandleLocalFile', true)
-        this.isFullDataFile = true
-        await this.writeLocalFile(content)
-        await this.readFile()
-        loading.close()
-      } catch (error) {
-        console.log(error)
-        if (error.toString().includes('aborted')) {
-          return
-        }
-        this.$message.warning(this.$t('toolbar.notSupportTip'))
-      }
-    },
-
-    onNodeNoteDblclick(node, e) {
-      e.stopPropagation()
-      this.$bus.$emit('showNodeNote', node)
     }
   }
 }

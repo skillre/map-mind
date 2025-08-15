@@ -72,6 +72,7 @@ import KeyboardNavigation from 'simple-mind-map/src/plugins/KeyboardNavigation.j
 import ExportPDF from 'simple-mind-map/src/plugins/ExportPDF.js'
 import ExportXMind from 'simple-mind-map/src/plugins/ExportXMind.js'
 import Export from 'simple-mind-map/src/plugins/Export.js'
+import GithubStorage from '@/utils/githubStorage'
 import Drag from 'simple-mind-map/src/plugins/Drag.js'
 import Select from 'simple-mind-map/src/plugins/Select.js'
 import RichText from 'simple-mind-map/src/plugins/RichText.js'
