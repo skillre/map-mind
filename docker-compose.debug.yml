@@ -1,0 +1,21 @@
+# 调试版docker-compose配置
+services:
+  mind-map-debug:
+    build:
+      context: .
+      dockerfile: Dockerfile.debug
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+        - NODE_ENV=development
+        - NPM_CONFIG_LOGLEVEL=verbose
+    container_name: mind-map-debug
+    ports:
+      - "8081:80"
+    environment:
+      - NODE_ENV=development
+      - DEBUG=true
+    volumes:
+      # 挂载源代码目录，方便调试
+      - ./web:/app/web
+      - ./copy.js:/app/copy.js
+    command: ["/bin/sh", "-c", "cd /app/web && npm install && npm run build || echo 'Build failed' && nginx -g 'daemon off;'"]

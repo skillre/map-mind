@@ -7,11 +7,15 @@ services:
       # 添加构建参数以加速构建过程
       args:
         - BUILDKIT_INLINE_CACHE=1
+        - NODE_ENV=production
+        - NPM_CONFIG_LOGLEVEL=error
       # 使用BuildKit加速构建
       x-bake:
         platforms: ["linux/amd64"]
         cache-from:
           - type=registry,ref=mind-map:cache
+      # 设置构建时环境变量
+      shm_size: '2gb'
     container_name: mind-map
     restart: unless-stopped
     ports:

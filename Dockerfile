@@ -3,20 +3,20 @@ FROM node:16-alpine AS builder
 
 WORKDIR /app
 
+# 复制所有项目文件，确保copy.js可用
+COPY . /app/
+
+# 进入web目录
+WORKDIR /app/web
+
 # 设置npm镜像源以加速依赖安装
 RUN npm config set registry https://registry.npmmirror.com
-
-# 复制项目文件
-COPY web/package*.json ./
 
 # 安装依赖，使用npm install替代npm ci以提高兼容性
 RUN npm install --quiet
 
-# 复制源代码
-COPY web/ ./
-
 # 构建应用
-RUN npm run build
+RUN npm run build || (echo "构建失败，查看日志" && exit 1)
 
 # 部署阶段
 FROM nginx:alpine
@@ -25,8 +25,8 @@ FROM nginx:alpine
 WORKDIR /app
 
 # 从构建阶段复制构建结果
-COPY --from=builder /app/dist ./dist
-COPY ./index.html ./
+COPY --from=builder /app/index.html ./index.html
+COPY --from=builder /app/web/dist ./dist
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
 # 暴露端口
